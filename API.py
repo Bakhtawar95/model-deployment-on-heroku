@@ -1,14 +1,9 @@
-import pandas as pd
+import numpy as np
 from flask import Flask, request, render_template
-import mlflow
+import pickle
 
 app = Flask(__name__)
-
-model_name="stress-level"
-stage="Production"
-MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-model = mlflow.pyfunc.load_model(f"models:/{model_name}/{stage}")
+model = pickle.load(open('model.pkl', 'rb'))
 
 @app.route('/')
 def home():
@@ -17,8 +12,10 @@ def home():
 @app.route('/predict',methods=['POST'])
 def predict():
     
+     
+
     features = [float(x) for x in request.form.values()]
-    X = pd.DataFrame([features], columns =['respiration_rate','body_temperature', 'blood_oxygen', 'heart_rate', 'sleeping_hours'], dtype = float)
+    X = [np.array(features)] 
     prediction=model.predict(X)
     output=prediction[0]
     return render_template('index.html', prediction_text='The predicted stress level of the human is {}'.format(output))
